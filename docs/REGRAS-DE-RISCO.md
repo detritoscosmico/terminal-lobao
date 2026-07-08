@@ -15,6 +15,7 @@ Lá você pode alterar:
 - máximo de operações no dia
 - limite de perda diária
 - alerta de mão alta
+- bloqueio rígido após limite
 
 As configurações ficam salvas localmente no navegador/Electron usando `localStorage`.
 
@@ -24,7 +25,8 @@ As configurações ficam salvas localmente no navegador/Electron usando `localSt
 const DEFAULT_RISK_RULES = {
   maxDailyOperations: 5,
   dailyLossLimit: -200,
-  stakeWarning: 100
+  stakeWarning: 100,
+  hardLock: false
 };
 ```
 
@@ -60,6 +62,17 @@ Padrão atual:
 R$ 100,00
 ```
 
+### `hardLock`
+
+Modo de bloqueio rígido.
+
+Quando ativado, o Terminal impede novo registro se:
+
+- o máximo de operações do dia já foi atingido
+- o limite de perda diária já foi atingido
+
+Quando desativado, o Terminal apenas mostra alerta e pede confirmação.
+
 ## Como funciona
 
 Antes de salvar uma operação, o Terminal verifica:
@@ -67,8 +80,9 @@ Antes de salvar uma operação, o Terminal verifica:
 1. Se o número máximo de operações do dia já foi atingido.
 2. Se o limite de perda diária já foi atingido.
 3. Se o valor da operação ultrapassa o alerta de mão alta.
+4. Se o bloqueio rígido está ativo.
 
-Se algum alerta for ativado, a Suzy pede confirmação antes de registrar.
+Se o bloqueio rígido estiver ativo e um limite crítico tiver sido atingido, o registro é bloqueado.
 
 ## Exportação
 
@@ -76,6 +90,7 @@ Ao exportar JSON, o arquivo inclui:
 
 - operações registradas
 - configuração de risco atual
+- estado do bloqueio rígido
 
 ## Importante
 
@@ -83,4 +98,4 @@ Essas regras são educativas e organizacionais. Elas não garantem lucro e não 
 
 ## Próxima melhoria
 
-Criar travamento opcional para impedir registro após limite de perda, em vez de apenas alertar.
+Criar um resumo diário com motivo dos bloqueios, perdas evitadas e observações da Suzy.
