@@ -34,3 +34,11 @@ jobs:
           grep -q "riskEvents" src/js/app.js
           grep -q "recordRiskEvent" src/js/app.js
           grep -q "Resumo Diário de Risco" src/index.html
+
+      - name: Validar relatório de batalha
+        run: |
+          test -f src/js/battle-report.js
+          grep -q "battleReportBox" src/index.html
+          grep -q "Relatório de Batalha Diário" src/index.html
+          grep -q "buildBattleReport" src/js/battle-report.js
+          grep -q "exportBattleReport" src/js/battle-report.js
