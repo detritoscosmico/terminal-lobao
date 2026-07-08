@@ -24,3 +24,10 @@ jobs:
 
       - name: Verificar estrutura mínima
         run: npm run check
+
+      - name: Validar módulo de risco
+        run: |
+          grep -q "riskHardLock" src/index.html
+          grep -q "hardLock" src/js/app.js
+          grep -q "hardBlockWarnings" src/js/app.js
+          grep -q "Bloqueio" src/index.html
