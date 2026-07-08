@@ -30,7 +30,7 @@
 <div class="card"><span>Status</span><strong>Treino</strong></div>
 </div>
 <div class="grid"><div class="panel"><h3>Suzy Desktop</h3><div id="suzyText" class="suzy-box">Danilo, Suzy Desktop corrigida online. Esta versão usa Electron estável.</div><div class="actions"><button id="briefingBtn" class="secondary">Briefing</button><button id="riskBtn" class="secondary">Risco</button></div></div>
-<div class="panel"><h3>Centro de Missão</h3><div class="mission"><div><span>Meta</span><strong>+R$300</strong></div><div><span>Limite</span><strong class="bad">-R$200</strong></div><div><span>Máx. Ops</span><strong>5</strong></div><div><span>Regra</span><strong>Disciplina</strong></div></div></div></div>
+<div class="panel"><h3>Centro de Missão</h3><div class="mission"><div><span>Meta</span><strong>+R$300</strong></div><div><span>Limite</span><strong class="bad" id="missionLossLimit">-R$200</strong></div><div><span>Máx. Ops</span><strong id="missionMaxOps">5</strong></div><div><span>Regra</span><strong>Disciplina</strong></div></div></div></div>
 </section>
 
 <section id="diario" class="tab"><div class="panel"><h3>Registrar Operação</h3><div class="form-grid">
@@ -46,9 +46,9 @@
 <section id="ranking" class="tab"><div class="grid"><div class="panel"><h3>Ranking de Ativos</h3><table><thead><tr><th>Ativo</th><th>Ops</th><th>WR</th><th>P/L</th></tr></thead><tbody id="assetRank"></tbody></table></div><div class="panel"><h3>Ranking de Setups</h3><table><thead><tr><th>Setup</th><th>Ops</th><th>WR</th><th>P/L</th></tr></thead><tbody id="setupRank"></tbody></table></div></div></section>
 <section id="coach" class="tab"><div class="panel"><h3>Suzy Coach</h3><div id="coachBox" class="list"></div></div></section>
 <section id="voz" class="tab"><div class="panel"><h3>Voz Feminina</h3><label>Voz</label><select id="voiceSelect"></select><label>Personalidade</label><select id="toneSelect"><option value="doce">Doce</option><option value="tatica">Tática</option><option value="provocante">Provocante</option></select><div class="actions"><button id="testVoice" class="primary">Testar</button><button id="saveVoice" class="secondary">Salvar</button></div></div></section>
-<section id="sistema" class="tab"><div class="panel"><h3>Correção Electron</h3><p>Se falhar, execute o arquivo <b>REINSTALAR_E_RODAR.bat</b> ou rode:</p><pre>rmdir /s /q node_modules
+<section id="sistema" class="tab"><div class="grid"><div class="panel"><h3>Correção Electron</h3><p>Se falhar, execute o arquivo <b>REINSTALAR_E_RODAR.bat</b> ou rode:</p><pre>rmdir /s /q node_modules
 del package-lock.json
 npm cache clean --force
 npm install
-npm start</pre><button id="exportData" class="secondary">Exportar JSON</button><button id="clearData" class="danger">Limpar</button></div></section>
+npm start</pre><button id="exportData" class="secondary">Exportar JSON</button><button id="clearData" class="danger">Limpar</button></div><div class="panel"><h3>Configuração de Risco</h3><p>Defina limites educativos para a Suzy alertar antes de registrar operações perigosas.</p><div class="form-grid"><div><label>Máximo de operações no dia</label><input id="riskMaxOps" type="number" min="1" value="5"/></div><div><label>Limite de perda diária</label><input id="riskLossLimit" type="number" value="-200"/></div><div><label>Alerta de mão alta</label><input id="riskStakeWarning" type="number" min="1" value="100"/></div></div><div class="actions"><button id="saveRiskSettings" class="primary">Salvar risco</button><button id="resetRiskSettings" class="secondary">Restaurar padrão</button></div><div id="riskSettingsStatus" class="suzy-box">Configurações locais de risco.</div></div></div></section>
 </main></div><script src="js/app.js"></script></body></html>
