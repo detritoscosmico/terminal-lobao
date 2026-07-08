@@ -2,15 +2,17 @@ const $ = (id) => document.getElementById(id);
 
 const STORAGE = {
   operations: 'suzy12_ops',
-  voice: 'suzy12_voice'
+  voice: 'suzy12_voice',
+  riskSettings: 'suzy12_risk_settings'
 };
 
-const RISK_RULES = {
+const DEFAULT_RISK_RULES = {
   maxDailyOperations: 5,
   dailyLossLimit: -200,
   stakeWarning: 100
 };
 
+let riskRules = loadRiskRules();
 let ops = JSON.parse(localStorage.getItem(STORAGE.operations) || '[]');
 let selectedVoiceName = localStorage.getItem(STORAGE.voice) || '';
 let voices = [];
@@ -20,6 +22,15 @@ function money(value) {
     style: 'currency',
     currency: 'BRL'
   });
+}
+
+function loadRiskRules() {
+  const saved = JSON.parse(localStorage.getItem(STORAGE.riskSettings) || 'null');
+  return { ...DEFAULT_RISK_RULES, ...(saved || {}) };
+}
+
+function saveRiskRules() {
+  localStorage.setItem(STORAGE.riskSettings, JSON.stringify(riskRules));
 }
 
 function save() {
@@ -82,6 +93,8 @@ function render() {
 
   setText('totalOps', total);
   setText('winrate', `${total ? Math.round((wins / total) * 100) : 0}%`);
+  setText('missionLossLimit', money(riskRules.dailyLossLimit));
+  setText('missionMaxOps', riskRules.maxDailyOperations);
 
   const pnlElement = $('pnl');
   if (pnlElement) {
@@ -97,6 +110,7 @@ function render() {
   renderRanking('assetRank', asset);
   renderRanking('setupRank', setup);
   renderCoach(total, totalPnl, asset, emotion);
+  renderRiskSettings();
 }
 
 function renderMemory(asset, setup, emotion) {
@@ -144,8 +158,8 @@ function renderCoach(total, totalPnl, asset, emotion) {
 
   if (!total) items.push('Registre operações para a Suzy aprender seu padrão.');
   if (total >= 3 && totalPnl < 0) items.push('Resultado geral negativo detectado. Reduza a mão e revise entradas.');
-  if (dailyOperations.length >= RISK_RULES.maxDailyOperations) items.push('Limite diário de operações atingido. Pare e revise o diário.');
-  if (dailyResult <= RISK_RULES.dailyLossLimit) items.push('Limite de perda diária atingido. Protocolo correto: encerrar o dia.');
+  if (dailyOperations.length >= riskRules.maxDailyOperations) items.push('Limite diário de operações atingido. Pare e revise o diário.');
+  if (dailyResult <= riskRules.dailyLossLimit) items.push('Limite de perda diária atingido. Protocolo correto: encerrar o dia.');
   if (asset[0]) items.push(`Priorize estudo em ${asset[0].name}. Ele lidera seu ranking.`);
   if (emotion.slice().reverse()[0]) items.push(`Observe seu estado emocional: ${emotion.slice().reverse()[0].name}.`);
 
@@ -154,21 +168,31 @@ function renderCoach(total, totalPnl, asset, emotion) {
   coachBox.innerHTML = items.map((item) => `<div class="item">${item}</div>`).join('');
 }
 
+function renderRiskSettings() {
+  const maxOps = $('riskMaxOps');
+  const lossLimit = $('riskLossLimit');
+  const stakeWarning = $('riskStakeWarning');
+
+  if (maxOps) maxOps.value = riskRules.maxDailyOperations;
+  if (lossLimit) lossLimit.value = riskRules.dailyLossLimit;
+  if (stakeWarning) stakeWarning.value = riskRules.stakeWarning;
+}
+
 function riskWarnings(value) {
   const warnings = [];
   const dailyOperations = todayOperations();
   const dailyResult = todayPnl();
 
-  if (dailyOperations.length >= RISK_RULES.maxDailyOperations) {
+  if (dailyOperations.length >= riskRules.maxDailyOperations) {
     warnings.push('Você já atingiu o número máximo de operações do dia.');
   }
 
-  if (dailyResult <= RISK_RULES.dailyLossLimit) {
+  if (dailyResult <= riskRules.dailyLossLimit) {
     warnings.push('Seu limite de perda diária já foi atingido.');
   }
 
-  if (value > RISK_RULES.stakeWarning) {
-    warnings.push(`Valor acima do alerta de mão: ${money(RISK_RULES.stakeWarning)}.`);
+  if (value > riskRules.stakeWarning) {
+    warnings.push(`Valor acima do alerta de mão: ${money(riskRules.stakeWarning)}.`);
   }
 
   return warnings;
@@ -212,6 +236,31 @@ function saveOp() {
 
   setText('suzyText', message);
   speak(message);
+  render();
+}
+
+function saveRiskSettings() {
+  const maxDailyOperations = Number($('riskMaxOps')?.value || DEFAULT_RISK_RULES.maxDailyOperations);
+  const dailyLossLimit = Number($('riskLossLimit')?.value || DEFAULT_RISK_RULES.dailyLossLimit);
+  const stakeWarning = Number($('riskStakeWarning')?.value || DEFAULT_RISK_RULES.stakeWarning);
+
+  if (maxDailyOperations <= 0 || stakeWarning <= 0 || dailyLossLimit >= 0) {
+    alert('Configuração inválida. Use máximo de operações positivo, mão positiva e limite de perda negativo.');
+    return;
+  }
+
+  riskRules = { maxDailyOperations, dailyLossLimit, stakeWarning };
+  saveRiskRules();
+  setText('riskSettingsStatus', `Risco salvo: ${maxDailyOperations} operações/dia, limite ${money(dailyLossLimit)}, alerta de mão ${money(stakeWarning)}.`);
+  speak('Configuração de risco salva.');
+  render();
+}
+
+function resetRiskSettings() {
+  riskRules = { ...DEFAULT_RISK_RULES };
+  saveRiskRules();
+  setText('riskSettingsStatus', 'Configurações de risco restauradas para o padrão.');
+  speak('Risco restaurado para o padrão.');
   render();
 }
 
@@ -299,8 +348,11 @@ function setupEvents() {
     };
   }
 
+  if ($('saveRiskSettings')) $('saveRiskSettings').onclick = saveRiskSettings;
+  if ($('resetRiskSettings')) $('resetRiskSettings').onclick = resetRiskSettings;
+
   if ($('exportData')) {
-    $('exportData').onclick = () => download('suzy12-dados.json', JSON.stringify({ ops }, null, 2));
+    $('exportData').onclick = () => download('suzy12-dados.json', JSON.stringify({ ops, riskRules }, null, 2));
   }
 
   if ($('clearData')) {
