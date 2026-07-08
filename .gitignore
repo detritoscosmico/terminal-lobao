@@ -1,0 +1,27 @@
+# Dependências
+node_modules/
+
+# Builds
+/dist/
+/build/
+/out/
+/release/
+
+# Ambiente local
+.env
+.env.local
+*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# VS Code local
+.vscode/
+!.vscode/extensions.json
