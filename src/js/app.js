@@ -9,7 +9,8 @@ const STORAGE = {
 const DEFAULT_RISK_RULES = {
   maxDailyOperations: 5,
   dailyLossLimit: -200,
-  stakeWarning: 100
+  stakeWarning: 100,
+  hardLock: false
 };
 
 let riskRules = loadRiskRules();
@@ -95,6 +96,8 @@ function render() {
   setText('winrate', `${total ? Math.round((wins / total) * 100) : 0}%`);
   setText('missionLossLimit', money(riskRules.dailyLossLimit));
   setText('missionMaxOps', riskRules.maxDailyOperations);
+  setText('missionHardLock', riskRules.hardLock ? 'Rígido' : 'Alerta');
+  setText('riskModeStatus', riskRules.hardLock ? 'Bloqueio rígido' : 'Treino');
 
   const pnlElement = $('pnl');
   if (pnlElement) {
@@ -160,6 +163,7 @@ function renderCoach(total, totalPnl, asset, emotion) {
   if (total >= 3 && totalPnl < 0) items.push('Resultado geral negativo detectado. Reduza a mão e revise entradas.');
   if (dailyOperations.length >= riskRules.maxDailyOperations) items.push('Limite diário de operações atingido. Pare e revise o diário.');
   if (dailyResult <= riskRules.dailyLossLimit) items.push('Limite de perda diária atingido. Protocolo correto: encerrar o dia.');
+  if (riskRules.hardLock) items.push('Bloqueio rígido ativo: ao atingir limite crítico, novos registros serão impedidos.');
   if (asset[0]) items.push(`Priorize estudo em ${asset[0].name}. Ele lidera seu ranking.`);
   if (emotion.slice().reverse()[0]) items.push(`Observe seu estado emocional: ${emotion.slice().reverse()[0].name}.`);
 
@@ -172,10 +176,12 @@ function renderRiskSettings() {
   const maxOps = $('riskMaxOps');
   const lossLimit = $('riskLossLimit');
   const stakeWarning = $('riskStakeWarning');
+  const hardLock = $('riskHardLock');
 
   if (maxOps) maxOps.value = riskRules.maxDailyOperations;
   if (lossLimit) lossLimit.value = riskRules.dailyLossLimit;
   if (stakeWarning) stakeWarning.value = riskRules.stakeWarning;
+  if (hardLock) hardLock.checked = Boolean(riskRules.hardLock);
 }
 
 function riskWarnings(value) {
@@ -198,11 +204,38 @@ function riskWarnings(value) {
   return warnings;
 }
 
+function hardBlockWarnings() {
+  if (!riskRules.hardLock) return [];
+
+  const blocks = [];
+  const dailyOperations = todayOperations();
+  const dailyResult = todayPnl();
+
+  if (dailyOperations.length >= riskRules.maxDailyOperations) {
+    blocks.push('bloqueio por máximo de operações no dia');
+  }
+
+  if (dailyResult <= riskRules.dailyLossLimit) {
+    blocks.push('bloqueio por limite de perda diária');
+  }
+
+  return blocks;
+}
+
 function saveOp() {
   const value = Number($('valor')?.value || 0);
 
   if (!value || value <= 0) {
     alert('Informe um valor válido para a operação.');
+    return;
+  }
+
+  const blocks = hardBlockWarnings();
+  if (blocks.length) {
+    const message = `Registro bloqueado: ${blocks.join(' e ')}. Revise o diário e encerre o ciclo operacional.`;
+    alert(message);
+    setText('suzyText', message);
+    speak(message);
     return;
   }
 
@@ -243,15 +276,16 @@ function saveRiskSettings() {
   const maxDailyOperations = Number($('riskMaxOps')?.value || DEFAULT_RISK_RULES.maxDailyOperations);
   const dailyLossLimit = Number($('riskLossLimit')?.value || DEFAULT_RISK_RULES.dailyLossLimit);
   const stakeWarning = Number($('riskStakeWarning')?.value || DEFAULT_RISK_RULES.stakeWarning);
+  const hardLock = Boolean($('riskHardLock')?.checked);
 
   if (maxDailyOperations <= 0 || stakeWarning <= 0 || dailyLossLimit >= 0) {
     alert('Configuração inválida. Use máximo de operações positivo, mão positiva e limite de perda negativo.');
     return;
   }
 
-  riskRules = { maxDailyOperations, dailyLossLimit, stakeWarning };
+  riskRules = { maxDailyOperations, dailyLossLimit, stakeWarning, hardLock };
   saveRiskRules();
-  setText('riskSettingsStatus', `Risco salvo: ${maxDailyOperations} operações/dia, limite ${money(dailyLossLimit)}, alerta de mão ${money(stakeWarning)}.`);
+  setText('riskSettingsStatus', `Risco salvo: ${maxDailyOperations} operações/dia, limite ${money(dailyLossLimit)}, alerta de mão ${money(stakeWarning)}, bloqueio ${hardLock ? 'rígido' : 'em modo alerta'}.`);
   speak('Configuração de risco salva.');
   render();
 }
