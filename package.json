@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win"
+    "build": "electron-builder --win",
+    "check": "node -e \"const fs=require('fs'); ['main.js','src/index.html','package.json'].forEach(f=>{if(!fs.existsSync(f)){console.error('Arquivo obrigatório ausente:',f); process.exit(1)}}); console.log('Verificação básica concluída com sucesso.')\""
   },
   "author": "Danilo Alves",
   "license": "MIT",
