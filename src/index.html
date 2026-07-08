@@ -27,10 +27,10 @@
 <div class="card"><span>Operações</span><strong id="totalOps">0</strong></div>
 <div class="card"><span>Win Rate</span><strong id="winrate">0%</strong></div>
 <div class="card"><span>Resultado</span><strong id="pnl">R$ 0,00</strong></div>
-<div class="card"><span>Status</span><strong>Treino</strong></div>
+<div class="card"><span>Status</span><strong id="riskModeStatus">Treino</strong></div>
 </div>
 <div class="grid"><div class="panel"><h3>Suzy Desktop</h3><div id="suzyText" class="suzy-box">Danilo, Suzy Desktop corrigida online. Esta versão usa Electron estável.</div><div class="actions"><button id="briefingBtn" class="secondary">Briefing</button><button id="riskBtn" class="secondary">Risco</button></div></div>
-<div class="panel"><h3>Centro de Missão</h3><div class="mission"><div><span>Meta</span><strong>+R$300</strong></div><div><span>Limite</span><strong class="bad" id="missionLossLimit">-R$200</strong></div><div><span>Máx. Ops</span><strong id="missionMaxOps">5</strong></div><div><span>Regra</span><strong>Disciplina</strong></div></div></div></div>
+<div class="panel"><h3>Centro de Missão</h3><div class="mission"><div><span>Meta</span><strong>+R$300</strong></div><div><span>Limite</span><strong class="bad" id="missionLossLimit">-R$200</strong></div><div><span>Máx. Ops</span><strong id="missionMaxOps">5</strong></div><div><span>Bloqueio</span><strong id="missionHardLock">Alerta</strong></div></div></div></div>
 </section>
 
 <section id="diario" class="tab"><div class="panel"><h3>Registrar Operação</h3><div class="form-grid">
@@ -50,5 +50,5 @@
 del package-lock.json
 npm cache clean --force
 npm install
-npm start</pre><button id="exportData" class="secondary">Exportar JSON</button><button id="clearData" class="danger">Limpar</button></div><div class="panel"><h3>Configuração de Risco</h3><p>Defina limites educativos para a Suzy alertar antes de registrar operações perigosas.</p><div class="form-grid"><div><label>Máximo de operações no dia</label><input id="riskMaxOps" type="number" min="1" value="5"/></div><div><label>Limite de perda diária</label><input id="riskLossLimit" type="number" value="-200"/></div><div><label>Alerta de mão alta</label><input id="riskStakeWarning" type="number" min="1" value="100"/></div></div><div class="actions"><button id="saveRiskSettings" class="primary">Salvar risco</button><button id="resetRiskSettings" class="secondary">Restaurar padrão</button></div><div id="riskSettingsStatus" class="suzy-box">Configurações locais de risco.</div></div></div></section>
+npm start</pre><button id="exportData" class="secondary">Exportar JSON</button><button id="clearData" class="danger">Limpar</button></div><div class="panel"><h3>Configuração de Risco</h3><p>Defina limites educativos para a Suzy alertar ou bloquear registros perigosos.</p><div class="form-grid"><div><label>Máximo de operações no dia</label><input id="riskMaxOps" type="number" min="1" value="5"/></div><div><label>Limite de perda diária</label><input id="riskLossLimit" type="number" value="-200"/></div><div><label>Alerta de mão alta</label><input id="riskStakeWarning" type="number" min="1" value="100"/></div><div><label><input id="riskHardLock" type="checkbox"/> Bloqueio rígido após limite</label></div></div><div class="actions"><button id="saveRiskSettings" class="primary">Salvar risco</button><button id="resetRiskSettings" class="secondary">Restaurar padrão</button></div><div id="riskSettingsStatus" class="suzy-box">Configurações locais de risco.</div></div></div></section>
 </main></div><script src="js/app.js"></script></body></html>
