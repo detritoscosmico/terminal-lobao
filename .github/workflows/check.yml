@@ -30,4 +30,7 @@ jobs:
           grep -q "riskHardLock" src/index.html
           grep -q "hardLock" src/js/app.js
           grep -q "hardBlockWarnings" src/js/app.js
-          grep -q "Bloqueio" src/index.html
+          grep -q "riskSummaryBox" src/index.html
+          grep -q "riskEvents" src/js/app.js
+          grep -q "recordRiskEvent" src/js/app.js
+          grep -q "Resumo Diário de Risco" src/index.html
