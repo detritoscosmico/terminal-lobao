@@ -1,0 +1,31 @@
+{
+  "name": "suzy-command-center-desktop",
+  "version": "12.1.0",
+  "description": "Suzy App Desktop corrigido - Electron estável.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "author": "Danilo Alves",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "31.7.7",
+    "electron-builder": "24.13.3"
+  },
+  "build": {
+    "appId": "com.danilo.suzy",
+    "productName": "Suzy Command Center",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
