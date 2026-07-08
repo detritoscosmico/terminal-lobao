@@ -73,6 +73,27 @@ Quando ativado, o Terminal impede novo registro se:
 
 Quando desativado, o Terminal apenas mostra alerta e pede confirmação.
 
+## Resumo diário de risco
+
+Abra:
+
+```text
+Sistema → Resumo Diário de Risco
+```
+
+O painel mostra:
+
+- alertas de risco gerados no dia
+- bloqueios acionados no dia
+- motivo de cada alerta ou bloqueio
+- valor da tentativa de registro, quando houver
+
+Os eventos ficam salvos localmente em:
+
+```text
+suzy12_risk_events
+```
+
 ## Como funciona
 
 Antes de salvar uma operação, o Terminal verifica:
@@ -82,7 +103,7 @@ Antes de salvar uma operação, o Terminal verifica:
 3. Se o valor da operação ultrapassa o alerta de mão alta.
 4. Se o bloqueio rígido está ativo.
 
-Se o bloqueio rígido estiver ativo e um limite crítico tiver sido atingido, o registro é bloqueado.
+Se o bloqueio rígido estiver ativo e um limite crítico tiver sido atingido, o registro é bloqueado e o evento aparece no resumo diário.
 
 ## Exportação
 
@@ -91,6 +112,7 @@ Ao exportar JSON, o arquivo inclui:
 - operações registradas
 - configuração de risco atual
 - estado do bloqueio rígido
+- eventos de risco
 
 ## Importante
 
@@ -98,4 +120,4 @@ Essas regras são educativas e organizacionais. Elas não garantem lucro e não 
 
 ## Próxima melhoria
 
-Criar um resumo diário com motivo dos bloqueios, perdas evitadas e observações da Suzy.
+Criar um relatório de batalha diário com estatísticas, riscos, bloqueios e observações da Suzy.
