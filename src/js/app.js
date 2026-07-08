@@ -3,7 +3,8 @@ const $ = (id) => document.getElementById(id);
 const STORAGE = {
   operations: 'suzy12_ops',
   voice: 'suzy12_voice',
-  riskSettings: 'suzy12_risk_settings'
+  riskSettings: 'suzy12_risk_settings',
+  riskEvents: 'suzy12_risk_events'
 };
 
 const DEFAULT_RISK_RULES = {
@@ -15,6 +16,7 @@ const DEFAULT_RISK_RULES = {
 
 let riskRules = loadRiskRules();
 let ops = JSON.parse(localStorage.getItem(STORAGE.operations) || '[]');
+let riskEvents = JSON.parse(localStorage.getItem(STORAGE.riskEvents) || '[]');
 let selectedVoiceName = localStorage.getItem(STORAGE.voice) || '';
 let voices = [];
 
@@ -32,6 +34,10 @@ function loadRiskRules() {
 
 function saveRiskRules() {
   localStorage.setItem(STORAGE.riskSettings, JSON.stringify(riskRules));
+}
+
+function saveRiskEvents() {
+  localStorage.setItem(STORAGE.riskEvents, JSON.stringify(riskEvents));
 }
 
 function save() {
@@ -56,6 +62,22 @@ function todayOperations() {
 
 function todayPnl() {
   return todayOperations().reduce((sum, op) => sum + pnl(op), 0);
+}
+
+function todayRiskEvents() {
+  return riskEvents.filter((event) => String(event.createdAt || '').startsWith(todayISO()));
+}
+
+function recordRiskEvent(type, messages, value = null) {
+  riskEvents.push({
+    type,
+    messages,
+    value,
+    data: new Date().toLocaleString('pt-BR'),
+    createdAt: new Date().toISOString()
+  });
+
+  saveRiskEvents();
 }
 
 function group(key) {
@@ -114,6 +136,7 @@ function render() {
   renderRanking('setupRank', setup);
   renderCoach(total, totalPnl, asset, emotion);
   renderRiskSettings();
+  renderRiskSummary();
 }
 
 function renderMemory(asset, setup, emotion) {
@@ -158,12 +181,17 @@ function renderCoach(total, totalPnl, asset, emotion) {
   const items = [];
   const dailyOperations = todayOperations();
   const dailyResult = todayPnl();
+  const riskToday = todayRiskEvents();
+  const blockCount = riskToday.filter((event) => event.type === 'bloqueio').length;
+  const alertCount = riskToday.filter((event) => event.type === 'alerta').length;
 
   if (!total) items.push('Registre operações para a Suzy aprender seu padrão.');
   if (total >= 3 && totalPnl < 0) items.push('Resultado geral negativo detectado. Reduza a mão e revise entradas.');
   if (dailyOperations.length >= riskRules.maxDailyOperations) items.push('Limite diário de operações atingido. Pare e revise o diário.');
   if (dailyResult <= riskRules.dailyLossLimit) items.push('Limite de perda diária atingido. Protocolo correto: encerrar o dia.');
   if (riskRules.hardLock) items.push('Bloqueio rígido ativo: ao atingir limite crítico, novos registros serão impedidos.');
+  if (blockCount) items.push(`Hoje ocorreram ${blockCount} bloqueio(s) de risco.`);
+  if (alertCount) items.push(`Hoje ocorreram ${alertCount} alerta(s) de risco.`);
   if (asset[0]) items.push(`Priorize estudo em ${asset[0].name}. Ele lidera seu ranking.`);
   if (emotion.slice().reverse()[0]) items.push(`Observe seu estado emocional: ${emotion.slice().reverse()[0].name}.`);
 
@@ -182,6 +210,33 @@ function renderRiskSettings() {
   if (lossLimit) lossLimit.value = riskRules.dailyLossLimit;
   if (stakeWarning) stakeWarning.value = riskRules.stakeWarning;
   if (hardLock) hardLock.checked = Boolean(riskRules.hardLock);
+}
+
+function renderRiskSummary() {
+  const target = $('riskSummaryBox');
+  if (!target) return;
+
+  const events = todayRiskEvents();
+  const blocks = events.filter((event) => event.type === 'bloqueio');
+  const alerts = events.filter((event) => event.type === 'alerta');
+
+  if (!events.length) {
+    target.innerHTML = '<div class="item">Nenhum alerta ou bloqueio registrado hoje.</div>';
+    return;
+  }
+
+  const rows = events.slice().reverse().map((event) => `
+    <div class="item">
+      <strong>${event.type.toUpperCase()}</strong>
+      <span>${event.data}</span><br>
+      ${event.messages.join(' | ')}${event.value ? ` | Valor: ${money(event.value)}` : ''}
+    </div>
+  `).join('');
+
+  target.innerHTML = `
+    <div class="item"><strong>Resumo:</strong> ${alerts.length} alerta(s), ${blocks.length} bloqueio(s).</div>
+    ${rows}
+  `;
 }
 
 function riskWarnings(value) {
@@ -232,17 +287,24 @@ function saveOp() {
 
   const blocks = hardBlockWarnings();
   if (blocks.length) {
+    recordRiskEvent('bloqueio', blocks, value);
     const message = `Registro bloqueado: ${blocks.join(' e ')}. Revise o diário e encerre o ciclo operacional.`;
     alert(message);
     setText('suzyText', message);
     speak(message);
+    render();
     return;
   }
 
   const warnings = riskWarnings(value);
   if (warnings.length) {
+    recordRiskEvent('alerta', warnings, value);
     const shouldContinue = confirm(`Alerta de risco:\n\n${warnings.join('\n')}\n\nDeseja registrar mesmo assim?`);
-    if (!shouldContinue) return;
+    if (!shouldContinue) {
+      setText('suzyText', 'Operação cancelada após alerta de risco. Boa decisão se não havia confirmação suficiente.');
+      render();
+      return;
+    }
   }
 
   const operation = {
@@ -385,15 +447,27 @@ function setupEvents() {
   if ($('saveRiskSettings')) $('saveRiskSettings').onclick = saveRiskSettings;
   if ($('resetRiskSettings')) $('resetRiskSettings').onclick = resetRiskSettings;
 
+  if ($('clearRiskEvents')) {
+    $('clearRiskEvents').onclick = () => {
+      if (confirm('Limpar eventos de risco?')) {
+        riskEvents = [];
+        saveRiskEvents();
+        render();
+      }
+    };
+  }
+
   if ($('exportData')) {
-    $('exportData').onclick = () => download('suzy12-dados.json', JSON.stringify({ ops, riskRules }, null, 2));
+    $('exportData').onclick = () => download('suzy12-dados.json', JSON.stringify({ ops, riskRules, riskEvents }, null, 2));
   }
 
   if ($('clearData')) {
     $('clearData').onclick = () => {
       if (confirm('Limpar todos os dados?')) {
         ops = [];
+        riskEvents = [];
         save();
+        saveRiskEvents();
         render();
       }
     };
